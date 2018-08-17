@@ -50,7 +50,7 @@ def migration_outputs_by_channel(Types, nodeIDs, distances, migration_matrix, ma
     return outputdict
 
 
-def compute_gravity_matrix( pops, distances, exponents):
+def compute_gravity_matrix( pops, distances, exponents, normalize=True):
     np.fill_diagonal(distances, 1000000)  #Prevent divide by zero errors and self migration
 
     migration_matrix = np.ones_like(distances)
@@ -59,6 +59,11 @@ def compute_gravity_matrix( pops, distances, exponents):
     migration_matrix = migration_matrix*(pops**exponents['Destination'])*(pops.T**(exponents['Source']-1))
     migration_matrix = migration_matrix/((distances + 10)**exponents['Distance']) #impose a minimum distance value to prevent excessive migration nearby
     np.fill_diagonal(migration_matrix, 0)
+
+    #Set average outbound migration = 1
+    if normalize:
+        migration_matrix = migration_matrix/np.mean(np.sum(migration_matrix, axis=1))
+	
     return migration_matrix
 
 
@@ -93,7 +98,7 @@ if __name__ == "__main__":
     nodeIDs = np.array([n['NodeID']                                           for n in base_demog['Nodes']])
 
     distances = 2*earth_radius*dist.squareform(dist.pdist(np.vstack((longs, lats)).T, haversine))
-    migration_matrix = compute_gravity_matrix(pops, distances, exponents)
+    migration_matrix = compute_gravity_matrix(pops, distances, exponents, normalize=True)
 
     outputdict = migration_outputs_by_channel(Types, nodeIDs, distances, migration_matrix, maxConnections)
 

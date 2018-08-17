@@ -12,18 +12,11 @@
     },
     "Defaults": 
     { 
-        "IndividualProperties": [            
-        {
-                "Property": "Age_Bin",
-                "Age_Bin_Edges_In_Years": [ 0, 0.5, -1 ],
-                "Transitions": [],
-                "TransmissionMatrix": {
-                    "Route": "Contact",
-                    "Matrix": [
-                        [0.0, 0.0],
-                        [0.0, 1.0]
-                    ]
-                }
+        "IndividualProperties": [
+            {
+                "Property": "Accessibility",
+                "Values": ["MCV2", "MCV1", "SIAOnly"],
+                "Initial_Distribution": [0.2, 0.3, 0.5]
             }
         ],
         "IndividualAttributes": 
