@@ -44,7 +44,7 @@
                 "ResultUnits": "years",
                 "ResultScaleFactor": 365,
                 "ResultValues": [ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
-                "DistributionValues": [ 0.000, 0.067, 0.133, 0.200, 0.267, 0.333, 0.400, 0.467, 0.533, 0.600, 0.667, 0.733, 0.800, 0.867, 0.933, 1.000 ]
+                "DistributionValues": [0, 0.0833, 0.1639, 0.2419, 0.3172, 0.3902, 0.4607, 0.5289, 0.5949, 0.6587, 0.7204, 0.7801, 0.8379, 0.8937, 0.9478, 1.0000 ]
             },
             "DESC_MortDist": "Realistic infant and toddler mortality, immediate death upon turning 5",
             "MortalityDistribution": 

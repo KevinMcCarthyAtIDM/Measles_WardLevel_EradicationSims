@@ -21,12 +21,20 @@ def fill_nodes(out_demog, node_info, res=30/3600):
     for index, row in node_info.iterrows():
         curr_node = {}
         curr_node['dot_name'] = row['dot_name']
-        curr_node['Area_deg2'] = row['area']
         curr_node['NodeAttributes'] = {}
         curr_node['NodeAttributes']['InitialPopulation'] = int(max(5000, 1000*row['population']))
         curr_node['NodeAttributes']['Latitude'] = row['latitude']
         curr_node['NodeAttributes']['Longitude'] = row['longitude']
+        curr_node['NodeAttributes']['Area_deg2'] = row['area']
+        curr_node['NodeAttributes']['Area_km2'] = row['area']*111*111
         curr_node['NodeID'] = int(node_ID_from_node_coordinates(curr_node, res))
+        if (curr_node['NodeAttributes']['InitialPopulation'] / curr_node['NodeAttributes']['Area_deg2']) > 10000000:
+            curr_node['NodeAttributes']['Urban'] = 1
+            curr_node['NodeAttributes']['BirthRate'] = 0.00024
+        else:
+            curr_node['NodeAttributes']['Urban'] = 0
+            curr_node['NodeAttributes']['BirthRate'] = 0.000288
+
         out_nodes.append(curr_node)
     out_nodes = duplicate_nodeID_check(out_nodes)
     return out_nodes
@@ -68,6 +76,8 @@ if __name__ == "__main__":
     out_demog['Metadata'] = base_demog['Metadata']
     out_demog['Defaults'] = base_demog['Defaults']
     out_demog['Defaults']['NodeAttributes']['Airport'] = 1
+    out_demog['Defaults']['NodeAttributes']['Urban'] = 0
+    out_demog['Defaults']['NodeAttributes']['BirthRate'] = 0.000288
     node_info = pd.read_csv(node_info_file)
     out_demog['Nodes'] = fill_nodes(out_demog, node_info, res=out_demog['Metadata']['Resolution']/3600)
     out_demog['Metadata']['NodeCount'] = len(out_demog['Nodes'])
