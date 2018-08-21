@@ -29,7 +29,7 @@
     "Enable_Demographics_Birth": 0,
     "Enable_Demographics_Builtin": 0,
     "Enable_Demographics_Gender": 0,
-    "Enable_Demographics_Reporting": 1,
+    "Enable_Demographics_Reporting": 0,
     "Enable_Disease_Mortality": 0,
     "Enable_Easy_Way": 0,
 	"Enable_Family_Migration": 0,
@@ -90,7 +90,7 @@
     "Node_Grid_Size": 0.004167,
     "Number_Basestrains": 1,
     "Number_Substrains": 1,
-    "Population_Density_Infectivity_Correction": "CONSTANT_INFECTIVITY",
+    "Population_Density_Infectivity_Correction": "URBAN_RURAL_INFECTIVITY",
     "Population_Scale_Type": "FIXED_SCALING",
 	"Post_Infection_Acquisition_Multiplier": 0,
     "Post_Infection_Mortality_Multiplier": 0,
@@ -101,6 +101,7 @@
     "Relative_Sample_Rate_Immune": 0.1,
     "Report_Event_Recorder": 0,
     "Run_Number": 268291,
+	"Rural_Infectivity_Multiplier": 1.0,
 	"Sea_Migration_Roundtrip_Duration": 0,
     "Sea_Migration_Roundtrip_Probability": 0,
     "Simulation_Abort_Conditions": 
@@ -109,7 +110,7 @@
     "Simulation_Duration": 10000.0,
     "Simulation_Timestep": 1.0,
     "Simulation_Type": "GENERIC_SIM",
-		"Spatial_Output_Channels": [
+	"Spatial_Output_Channels": [
       "Population",
       "Prevalence",
       "New_Infections",
@@ -123,6 +124,7 @@
 	"Susceptibility_Scale_Type": "CONSTANT_SUSCEPTIBILITY",
 	"Susceptibility_Type": "BINARY",
     "Start_Time": 0.0,
+	"Urban_Infectivity_Multiplier": 1.5,
 	"x_Air_Migration": 0.01,
     "x_Birth": 1.0,
 	"x_Local_Migration": 0.01,

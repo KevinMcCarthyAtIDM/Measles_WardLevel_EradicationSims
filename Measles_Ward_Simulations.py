@@ -4,39 +4,56 @@ Measles Ward Simulations: Sample demographic
 """
 #
 import json
-
+import random
+import math
+from scipy.special import erfinv
 from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
+from simtools import ModBuilder
+from simtools.Analysis.AnalyzeManager import AnalyzeManager
+from simtools.ModBuilder import ModFn
+from simtools.SetupParser import SetupParser
+from simtools.ExperimentManager.ExperimentManagerFactory import ExperimentManagerFactory
+from PythonAnalysis.Output2MatlabAnalyzer import Output2MatlabAnalyzer
+from SetupFunctions import sample_point_fn
 
-cb = DTKConfigBuilder.from_files(config_name='pathtoconfig\config.json', campaign_name='pathtocampaign\campaign.json')
-cb.set_experiment_executable(path='pathtoexecutable\Eradication.exe')
-cb.add_demog_overlay(name='demographics.json', content=json.load(open('pathtofile\demograpmics.json')))
-cb.experiment_files.add_file(path='migrationFile')
+#Run on HPC
+SetupParser.default_block = "HPC"
 
-def IndividualPropertiesByNode(cb, threshold, percent_meeting):
-    tags ={}
-    # Construct vector
-    demog = cb.demog_overlays['demographics.json']
-    demog['Nodes'][]
-    cb.demog_overlays['demographics.json'] = demog
-    return tags
+cb = DTKConfigBuilder.from_files(config_name='InputFiles\\config.json', campaign_name='InputFiles\\campaign.json')
+cb.set_experiment_executable(path='Executable\\Eradication.exe')
+cb.add_demog_overlay(name='demographics.json', content=json.load(open('InputFiles\\Nigeria_Ward_minpop5000_demographics.json')))
+cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_minpop5000_air_migration.bin')
+cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_minpop5000_air_migration.bin.json')
+cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_minpop5000_local_migration.bin')
+cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_minpop5000_local_migration.bin.json')
+cb.experiment_files.add_file(path='InputFiles\\reports.json')
+cb.experiment_files.add_file(path='Reporter_plugins\\libReportAgeAtInfectionHistogram_plugin.dll')
 
+mod_fns = []
 
+for n_samples in range(5):
+    names = ['META_Vaccination_Threshold', 'META_Fraction_Meeting', 'META_campaign_coverage', 'Run_Number', 'META_Migration']
+    values = [random.uniform(0.5, 0.95), random.uniform(0.5, 0.95), 0.25, random.randint(1, 1e6), 1.0]
+    mod_fns.append(ModFn(sample_point_fn, names, values))
+
+builder = ModBuilder.from_combos(mod_fns)
+
+#Name the experiment
+exp_name = 'Testing measles eradication pre-condition targets'
+run_sim_args = {'config_builder': cb,
+                'exp_name': exp_name,
+                'exp_builder': builder}
+analyzers = [
+    Output2MatlabAnalyzer(name='Output2MatlabAnalyzer')
+            ]
 if __name__ == "__main__":
 
-    # Basic parameters.  Should these be inputs?
-    base_demog_file = '.\\Nigeria_LGA_demographics.json'
-    out_demog_file = '.\\Nigeria_Ward_minpop5000_demographics.json'
-    node_info_file = '.\\population_by_ward.csv'
+    SetupParser.init('HPC')
+    exp_manager = ExperimentManagerFactory.from_cb(cb)
+    exp_manager.bypass_missing = True
+    exp_manager.run_simulations(**run_sim_args)
+    exp_manager.wait_for_finished(verbose=True)
 
-    with open(base_demog_file, 'r') as f:
-        base_demog = json.load(f)
-    out_demog = dict()
-    out_demog['Metadata'] = base_demog['Metadata']
-    out_demog['Defaults'] = base_demog['Defaults']
-    out_demog['Defaults']['NodeAttributes']['Airport'] = 1
-    node_info = pd.read_csv(node_info_file)
-    out_demog['Nodes'] = fill_nodes(out_demog, node_info, res=out_demog['Metadata']['Resolution']/3600)
-    out_demog['Metadata']['NodeCount'] = len(out_demog['Nodes'])
-
-    with open(out_demog_file, 'w') as fp:
-        json.dump(out_demog, fp, indent=4)
+    am = AnalyzeManager('latest')
+    map(am.add_analyzer, analyzers)
+    am.analyze()

@@ -110,7 +110,7 @@
     },
     {
       "Event_Name": "SIAs - MCV2 Group",
-      "Start_Day": 500,
+      "Start_Day": 1500,
       "class": "CampaignEvent",
       "Nodeset_Config": {
         "class": "NodeSetAll"
@@ -143,7 +143,7 @@
     },
     {
       "Event_Name": "SIAs - MCV1 Group",
-      "Start_Day": 5000,
+      "Start_Day": 3000,
       "class": "CampaignEvent",
       "Nodeset_Config": {
         "class": "NodeSetAll"
@@ -175,7 +175,7 @@
       }
     },
     {
-      "Event_Name": "SIAs -SIAOnly Group",
+      "Event_Name": "SIAs - SIAOnly Group",
       "Start_Day": 5000,
       "class": "CampaignEvent",
       "Nodeset_Config": {
@@ -188,7 +188,7 @@
         "Number_Distributions": -1,
         "Number_Repetitions": 1000,
         "Timesteps_Between_Repetitions": 730,
-        "Demographic_Coverage": 1.0,
+        "Demographic_Coverage": 0.5,
         "Property_Restrictions_Within_Node": [
           { "Accessibility": "SIAOnly" }
         ],

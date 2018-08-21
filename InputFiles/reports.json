@@ -1,7 +1,7 @@
 {
   "Custom_Reports":
   {
-    "AgeAtInfectionHistogramReport":
+    "ReportPluginAgeAtInfectionHistogram":
     {
       "Enabled": 1,
       "Reports": 
