@@ -42,6 +42,7 @@ def Setup_Base_Parameters():
     params_dict['Infectivity_Boxcar_Forcing_Amplitude'] = 0.2
     params_dict['Infectivity_Boxcar_Forcing_Start_Time'] = 30
     params_dict['Infectivity_Boxcar_Forcing_End_Time'] = 120
+    params_dict['logLevel_Node'] = "ERROR"
     # mAB_prfiles = [(150, 50), (90, 30), (120, 51)]
     params_dict['Maternal_Sigmoid_HalfMaxAge'] = 150
     params_dict['Maternal_Sigmoid_SteepFac'] = 50

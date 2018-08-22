@@ -27,7 +27,7 @@ cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_minpop5000_local_mig
 cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_minpop5000_local_migration.bin.json')
 cb.experiment_files.add_file(path='InputFiles\\reports.json')
 cb.experiment_files.add_file(path='reporter_plugins\\libReportAgeAtInfectionHistogram_plugin.dll')
-cb.add_reports(BaseReport(type = 'AgeAtInfectionHistogramReport'))
+cb.add_reports(BaseReport(type='AgeAtInfectionHistogramReport'))
 
 mod_fns = []
 
