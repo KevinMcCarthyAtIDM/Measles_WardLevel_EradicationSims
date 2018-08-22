@@ -20,11 +20,11 @@ SetupParser.default_block = "HPC"
 
 cb = DTKConfigBuilder.from_files(config_name='InputFiles\\config.json', campaign_name='InputFiles\\basecampaign.json')
 cb.set_experiment_executable(path='Executable\\Eradication.exe')
-cb.add_demog_overlay(name='demographics.json', content=json.load(open('InputFiles\\Nigeria_Ward_minpop5000_demographics.json')))
-cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_minpop5000_air_migration.bin')
-cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_minpop5000_air_migration.bin.json')
-cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_minpop5000_local_migration.bin')
-cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_minpop5000_local_migration.bin.json')
+cb.add_demog_overlay(name='demographics.json', content=json.load(open('InputFiles\\Nigeria_Ward_smaller_minpop5000_demographics.json')))
+cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_smaller_minpop5000_air_migration.bin')
+cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_smaller_minpop5000_air_migration.bin.json')
+cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_smaller_minpop5000_local_migration.bin')
+cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_smaller_minpop5000_local_migration.bin.json')
 cb.experiment_files.add_file(path='InputFiles\\reports.json')
 cb.experiment_files.add_file(path='reporter_plugins\\libReportAgeAtInfectionHistogram_plugin.dll')
 cb.add_reports(BaseReport(type='AgeAtInfectionHistogramReport'))
@@ -44,7 +44,7 @@ run_sim_args = {'config_builder': cb,
                 'exp_name': exp_name,
                 'exp_builder': builder}
 analyzers = [
-    Output2MatlabAnalyzer(name='Output2MatlabAnalyzer')
+    Output2MatlabAnalyzer()
             ]
 if __name__ == "__main__":
 

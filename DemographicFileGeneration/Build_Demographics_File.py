@@ -18,24 +18,26 @@ def node_ID_from_node_coordinates(node, res=30/3600):
 
 def fill_nodes(out_demog, node_info, res=30/3600):
     out_nodes = []
+    states2keep = ['katsina', 'kano', 'jigawa', 'kaduna', 'bauchi']
     for index, row in node_info.iterrows():
-        curr_node = {}
-        curr_node['dot_name'] = row['dot_name']
-        curr_node['NodeAttributes'] = {}
-        curr_node['NodeAttributes']['InitialPopulation'] = int(max(5000, 1000*row['population']))
-        curr_node['NodeAttributes']['Latitude'] = row['latitude']
-        curr_node['NodeAttributes']['Longitude'] = row['longitude']
-        curr_node['NodeAttributes']['Area_deg2'] = row['area']
-        curr_node['NodeAttributes']['Area_km2'] = row['area']*111*111
-        curr_node['NodeID'] = int(node_ID_from_node_coordinates(curr_node, res))
-        if (curr_node['NodeAttributes']['InitialPopulation'] / curr_node['NodeAttributes']['Area_deg2']) > 10000000:
-            curr_node['NodeAttributes']['Urban'] = 1
-            curr_node['NodeAttributes']['BirthRate'] = 0.00024
-        else:
-            curr_node['NodeAttributes']['Urban'] = 0
-            curr_node['NodeAttributes']['BirthRate'] = 0.000288
+        if row['dot_name'].split(':')[1] in states2keep:
+            curr_node = {}
+            curr_node['dot_name'] = row['dot_name']
+            curr_node['NodeAttributes'] = {}
+            curr_node['NodeAttributes']['InitialPopulation'] = int(max(5000, 1000*row['population']))
+            curr_node['NodeAttributes']['Latitude'] = row['latitude']
+            curr_node['NodeAttributes']['Longitude'] = row['longitude']
+            curr_node['NodeAttributes']['Area_deg2'] = row['area']
+            curr_node['NodeAttributes']['Area_km2'] = row['area']*111*111
+            curr_node['NodeID'] = int(node_ID_from_node_coordinates(curr_node, res))
+            if (curr_node['NodeAttributes']['InitialPopulation'] / curr_node['NodeAttributes']['Area_deg2']) > 10000000:
+                curr_node['NodeAttributes']['Urban'] = 1
+                curr_node['NodeAttributes']['BirthRate'] = 0.00024
+            else:
+                curr_node['NodeAttributes']['Urban'] = 0
+                curr_node['NodeAttributes']['BirthRate'] = 0.000288
 
-        out_nodes.append(curr_node)
+            out_nodes.append(curr_node)
     out_nodes = duplicate_nodeID_check(out_nodes)
     return out_nodes
 
@@ -67,7 +69,7 @@ if __name__ == "__main__":
 
     # Basic parameters.  Should these be inputs?
     base_demog_file = '.\\Nigeria_LGA_demographics.json'
-    out_demog_file = '.\\Nigeria_Ward_minpop5000_demographics.json'
+    out_demog_file = '.\\Nigeria_Ward_smaller_minpop5000_demographics.json'
     node_info_file = '.\\population_by_ward.csv'
 
     with open(base_demog_file, 'r') as f:

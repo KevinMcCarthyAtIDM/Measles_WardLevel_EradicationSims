@@ -29,7 +29,7 @@ def sample_point_fn(cb, param_names, param_values):
 def Setup_Base_Parameters():
     # Set some defaults here, but allow them to be overwritten by inputs to the function
     params_dict = dict()
-    params_dict['Base_Population_Scale_Factor'] = 0.02
+    params_dict['Base_Population_Scale_Factor'] = 0.025
     params_dict['x_Birth'] = 0.98
     params_dict['x_Local_Migration'] = 1.0
     params_dict['x_Air_Migration'] = 1.0
@@ -37,7 +37,7 @@ def Setup_Base_Parameters():
     params_dict['Population_Density_Infectivity_Correction'] = 'URBAN_RURAL_INFECTIVITY'
     params_dict['Rural_Infectivity_Multiplier'] = 1.0
     params_dict['Urban_Infectivity_Multiplier'] = 2.0  # R0 of 24 in urban settings
-    params_dict['Relative_Sample_Rate_Immune'] = 0.03
+    params_dict['Relative_Sample_Rate_Immune'] = 0.02
     params_dict['Infectivity_Scale_Type'] = 'ANNUAL_BOXCAR_FUNCTION'
     params_dict['Infectivity_Boxcar_Forcing_Amplitude'] = 0.2
     params_dict['Infectivity_Boxcar_Forcing_Start_Time'] = 30

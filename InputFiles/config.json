@@ -2,7 +2,7 @@
   "parameters":
   {
     "Age_Initialization_Distribution_Type": "DISTRIBUTION_COMPLEX",
-	"Air_Migration_Filename": "Nigeria_Ward_minpop5000_air_migration.bin",
+	"Air_Migration_Filename": "Nigeria_Ward_smaller_minpop5000_air_migration.bin",
 	"Air_Migration_Roundtrip_Duration": 1.0,
 	"Air_Migration_Roundtrip_Probability": 1.0,
     "Animal_Reservoir_Type": "NO_ZOONOSIS",
@@ -19,7 +19,7 @@
     "Death_Rate_Dependence": "NONDISEASE_MORTALITY_BY_AGE_AND_GENDER",
     "Demographics_Filenames": 
     [
-      "Nigeria_Ward_minpop5000_demographics.json"
+      "Nigeria_Ward_smaller_minpop5000_demographics.json"
     ],
 	"Enable_Abort_Zero_Infectivity": 0,
     "Enable_Aging": 1,
@@ -56,7 +56,7 @@
     "Enable_Susceptibility_Scaling": 0,
     "Enable_Vital_Dynamics": 1,
 	"Family_Migration_Roundtrip_Duration": 0,
-    "Immune_Downsample_Min_Age": 730.0,
+    "Immune_Downsample_Min_Age": 455.0,
     "Immune_Threshold_For_Downsampling": 1e-05,
     "Immunity_Initialization_Distribution_Type": "DISTRIBUTION_COMPLEX",
     "Incubation_Period_Distribution": "GAUSSIAN_DURATION",
@@ -73,7 +73,7 @@
 
     ],
     "Load_Balance_Filename": "",
-	"Local_Migration_Filename": "Nigeria_Ward_minpop5000_local_migration.bin",
+	"Local_Migration_Filename": "Nigeria_Ward_smaller_minpop5000_local_migration.bin",
 	"Local_Migration_Roundtrip_Duration": 1.0,
 	"Local_Migration_Roundtrip_Probability": 1.0,
 	"logLevel_default": "INFO",
