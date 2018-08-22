@@ -46,22 +46,22 @@ def Setup_Base_Parameters():
     params_dict['Maternal_Sigmoid_HalfMaxAge'] = 150
     params_dict['Maternal_Sigmoid_SteepFac'] = 50
     params_dict['Maternal_Sigmoid_SusInit'] = 0.05
+    params_dict['Simulation_Duration'] = 10950
     return params_dict
 
 
 def SIA_Coverage_setup(cb, campaign_coverage):
     demog = cb.demog_overlays['demographics.json']
-    LN_sig = 0.1 + 1.4 * (1 - random.random() ** (2.0 / 3.0))
+    LN_sig = 0.1 + 2.4 * (1 - random.random() ** (2.0 / 3.0))
     LN_mu = math.log(campaign_coverage / (1 - campaign_coverage)) - math.sqrt(2) * LN_sig * erfinv(1 - 2 * 0.5)
     tmp = [math.exp(LN_mu + LN_sig*random.gauss(0, 1)) for i in range(len(demog['Nodes']))]
     campaign_coverages = [t/(1+t) for t in tmp]
 
-    for event in cb.campaign['Events']:
-        if event['Event_Name'] == 'SIAs - SIAOnly Group':
-            event['Event_Coordinator_Config']['class'] = 'CoverageByNodeEventCoordinator'
-            event['Event_Coordinator_Config']['Coverage_by_Node'] = []
+    for event in cb.campaign.Events:
+        if event.Event_Name == 'SIAs - SIAOnly Group':
+            event.Event_Coordinator_Config.Coverage_By_Node = []
             for ii in range(len(demog['Nodes'])):
-                event['Event_Coordinator_Config']['Coverage_by_Node'].append(
+                event.Event_Coordinator_Config.Coverage_By_Node.append(
                     [demog['Nodes'][ii]['NodeID'], campaign_coverages[ii]])
 
 
@@ -87,8 +87,9 @@ def RI_Vacc_Setup(cb, threshold, fraction_meeting):
         tmp = math.log(distcov / (1 - distcov))
         tmp2 = math.exp(tmp + 0.2 * random.gauss(0, 1))
         wardcov = tmp2 / (1 + tmp2)
-        node['IndividualProperties'] = demog['Defaults']['IndividualProperties']
-        node['IndividualProperties']['Initial_Distribution'] = [0.75 * wardcov, 0.25 * wardcov, 1 - wardcov]
+        node['IndividualProperties'] = []
+        node['IndividualProperties'].append(demog['Defaults']['IndividualProperties'][0].copy())
+        node['IndividualProperties'][0]['Initial_Distribution'] = [0.75*wardcov, 0.25*wardcov, 1-wardcov]
 
     cb.demog_overlays['demographics.json'] = demog
 

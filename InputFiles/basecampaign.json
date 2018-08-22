@@ -16,7 +16,7 @@
           "class": "OutbreakIndividual"
         },
         "Number_Distributions": -1,
-        "Number_Repetitions": 1000,
+        "Number_Repetitions": 1043,
         "Timesteps_Between_Repetitions": 7,
         "Target_Demographic": "Everyone",
         "class": "StandardInterventionDistributionEventCoordinator"
@@ -110,7 +110,7 @@
     },
     {
       "Event_Name": "SIAs - MCV2 Group",
-      "Start_Day": 1500,
+      "Start_Day": 3650,
       "class": "CampaignEvent",
       "Nodeset_Config": {
         "class": "NodeSetAll"
@@ -143,7 +143,7 @@
     },
     {
       "Event_Name": "SIAs - MCV1 Group",
-      "Start_Day": 3000,
+      "Start_Day": 3650,
       "class": "CampaignEvent",
       "Nodeset_Config": {
         "class": "NodeSetAll"
@@ -176,7 +176,7 @@
     },
     {
       "Event_Name": "SIAs - SIAOnly Group",
-      "Start_Day": 5000,
+      "Start_Day": 3650,
       "class": "CampaignEvent",
       "Nodeset_Config": {
         "class": "NodeSetAll"
@@ -188,11 +188,12 @@
         "Number_Distributions": -1,
         "Number_Repetitions": 1000,
         "Timesteps_Between_Repetitions": 730,
-        "Demographic_Coverage": 0.5,
+        "Demographic_Coverage": 1.0,
         "Property_Restrictions_Within_Node": [
           { "Accessibility": "SIAOnly" }
         ],
-        "class": "StandardInterventionDistributionEventCoordinator",
+		"Coverage_By_Node": [[]],
+        "class": "CoverageByNodeEventCoordinator",
         "Intervention_Config": {
           "Acquire_Config": {
             "Initial_Effect": 1.0,
