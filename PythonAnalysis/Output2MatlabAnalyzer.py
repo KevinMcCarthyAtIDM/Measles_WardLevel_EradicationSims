@@ -35,20 +35,19 @@ class Output2MatlabAnalyzer(BaseAnalyzer):
         # print('Extracting data from parser ' + str(self.apply_ticker))
         selected_data = dict()
 
-        selected_data['nodeIDs'] = data['output/SpatialReport_New_Infections.bin']['nodeids']
+        selected_data['nodeIDs'] = data['output/SpatialReport_New_Infections.bin']['nodeids'].values().to_list()
         for datatype in ['New_Infections', 'Prevalence', 'Population']:
-            selected_data[datatype] = data['output/SpatialReport_' + datatype + '.bin']['data']
+            selected_data[datatype] = data['output/SpatialReport_' + datatype + '.bin']['data'].values().to_list()
         for name, value in data['output/InsetChart.json']['Channels'].items():
-            selected_data['all'+name] = value['Data']
-        selected_data['age_bins'] = data['output/AgeAtInfectionHistogramReport.json']['Channels']['Age_Bin_Upper_Edges']['Data']
-        selected_data['age_distribution'] = data['output/AgeAtInfectionHistogramReport.json']['Channels']['Accumulated_Binned_Infection_Counts']['Data']
+            selected_data['all'+name] = value['Data'].values().to_list()
+        selected_data['age_bins'] = data['output/AgeAtInfectionHistogramReport.json']['Channels']['Age_Bin_Upper_Edges']['Data'].values().to_list()
+        selected_data['age_distribution'] = data['output/AgeAtInfectionHistogramReport.json']['Channels']['Accumulated_Binned_Infection_Counts']['Data'].values().to_list()
         selected_data['sim_id'] = simulation.id
         selected_data['sample'] = simulation.tags.get('__sample_index__')
         selected_data['metadata'] = simulation.tags
         # self.metadata[simulation.tags.get('__sample_index__')] = simulation.tags
 
-        savemat(os.path.join(self.working_dir, 'output_' + str(selected_data['sample']) + '.mat'), selected_data)
-
+        savemat(os.path.join(self.working_dir, 'output_' + str(selected_data['sim_id']) + '.mat'), selected_data)
 
         return simulation.tags
 
@@ -57,4 +56,4 @@ class Output2MatlabAnalyzer(BaseAnalyzer):
         metadata = {}
         for simulation, selected_data in all_data.items():
             metadata[simulation.id] = selected_data
-        json.dump(metadata, open(os.path.join(self.working_dir, 'metadata_output.json'), 'wb'), cls=NumpyEncoder,  indent=3)
+        json.dump(metadata, open(os.path.join(self.working_dir, 'metadata_output.json'), 'w', encoding='utf8'), cls=NumpyEncoder,  indent=3)

@@ -7,7 +7,7 @@ import json
 import random
 
 from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from dtk.utils.reports import BaseReport
+from dtk.utils.reports import BaseReport, BaseAgeHistReport
 from simtools.Analysis.AnalyzeManager import AnalyzeManager
 from simtools.ModBuilder import ModBuilder, ModFn
 from simtools.SetupParser import SetupParser
@@ -27,7 +27,9 @@ cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_smaller_minpop5000_l
 cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_smaller_minpop5000_local_migration.bin.json')
 cb.experiment_files.add_file(path='InputFiles\\reports.json')
 cb.experiment_files.add_file(path='reporter_plugins\\libReportAgeAtInfectionHistogram_plugin.dll')
-cb.add_reports(BaseReport(type='AgeAtInfectionHistogramReport'))
+cb.add_reports(BaseAgeHistReport(type='ReportPluginAgeAtInfectionHistogram',
+                                 age_bins=[x/12 for x in range(1, 180)],
+                                 interval_years=1))
 
 mod_fns = []
 
@@ -43,9 +45,7 @@ exp_name = 'Testing measles eradication pre-condition targets'
 run_sim_args = {'config_builder': cb,
                 'exp_name': exp_name,
                 'exp_builder': builder}
-analyzers = [
-    Output2MatlabAnalyzer()
-            ]
+
 if __name__ == "__main__":
 
     SetupParser.init('HPC')
@@ -55,5 +55,5 @@ if __name__ == "__main__":
     exp_manager.wait_for_finished(verbose=True)
 
     am = AnalyzeManager('latest')
-    map(am.add_analyzer, analyzers)
+    am.add_analyzer(Output2MatlabAnalyzer())
     am.analyze()

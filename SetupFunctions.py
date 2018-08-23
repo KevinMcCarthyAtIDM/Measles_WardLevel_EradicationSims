@@ -29,7 +29,7 @@ def sample_point_fn(cb, param_names, param_values):
 def Setup_Base_Parameters():
     # Set some defaults here, but allow them to be overwritten by inputs to the function
     params_dict = dict()
-    params_dict['Base_Population_Scale_Factor'] = 0.025
+    params_dict['Base_Population_Scale_Factor'] = 0.075
     params_dict['x_Birth'] = 0.98
     params_dict['x_Local_Migration'] = 1.0
     params_dict['x_Air_Migration'] = 1.0
