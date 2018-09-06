@@ -195,3 +195,10 @@ MatlabAnalysis/MatFigs/
 *.asv
 Images/
 Experiments/
+MatlabAnalysis/demotmp.txt
+InputFiles/input_stash/config_xb98.json
+InputFiles/input_stash/config_xb95.json
+InputFiles/input_stash/config_xb9.json
+InputFiles/input_stash/config_xb105.json
+InputFiles/input_stash/config_xb102.json
+InputFiles/input_stash/base_coveragebynode_campaign.json
