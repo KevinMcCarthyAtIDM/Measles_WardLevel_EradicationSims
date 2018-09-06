@@ -21,7 +21,7 @@
     [
       "Nigeria_Ward_smaller_minpop5000_demographics.json"
     ],
-	"Enable_Abort_Zero_Infectivity": 0,
+	"Enable_Abort_Zero_Infectivity": 1,
     "Enable_Aging": 1,
 	"Enable_Air_Migration": 1,
     "Enable_Birth": 1,
@@ -87,6 +87,7 @@
     "Max_Individual_Infections": 1,
     "Migration_Model": "FIXED_RATE_MIGRATION",
 	"Migration_Pattern": "SINGLE_ROUND_TRIPS",
+	"Minimum_End_Time": 8000,
     "Node_Grid_Size": 0.004167,
     "Number_Basestrains": 1,
     "Number_Substrains": 1,

@@ -4,6 +4,8 @@ Measles Ward Simulations: Sample demographic
 """
 #
 import json
+import math
+import os
 import random
 
 from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
@@ -19,6 +21,7 @@ from SetupFunctions import sample_point_fn
 SetupParser.default_block = "HPC"
 
 cb = DTKConfigBuilder.from_files(config_name='InputFiles\\config.json', campaign_name='InputFiles\\basecampaign.json')
+cb.set_param('Num_Cores', 1)
 cb.set_experiment_executable(path='Executable\\Eradication.exe')
 cb.add_demog_overlay(name='demographics.json', content=json.load(open('InputFiles\\Nigeria_Ward_smaller_minpop5000_demographics.json')))
 cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_smaller_minpop5000_air_migration.bin')
@@ -31,29 +34,57 @@ cb.add_reports(BaseAgeHistReport(type='ReportPluginAgeAtInfectionHistogram',
                                  age_bins=[x/12 for x in range(1, 180)],
                                  interval_years=1))
 
-mod_fns = []
-
-for n_samples in range(2):
-    names = ['META_Vaccination_Threshold', 'META_Fraction_Meeting', 'META_campaign_coverage', 'Run_Number', 'META_Migration']
-    values = [random.uniform(0.5, 0.95), random.uniform(0.5, 0.95), 0.25, random.randint(1, 1e6), 1.0]
-    mod_fns.append(ModFn(sample_point_fn, names, values))
-
-builder = ModBuilder.from_combos(mod_fns)
-
-#Name the experiment
-exp_name = 'Testing measles eradication pre-condition targets'
-run_sim_args = {'config_builder': cb,
-                'exp_name': exp_name,
-                'exp_builder': builder}
-
 if __name__ == "__main__":
 
     SetupParser.init('HPC')
-    exp_manager = ExperimentManagerFactory.from_cb(cb)
-    exp_manager.bypass_missing = True
-    exp_manager.run_simulations(**run_sim_args)
-    exp_manager.wait_for_finished(verbose=True)
 
-    am = AnalyzeManager('latest')
-    am.add_analyzer(Output2MatlabAnalyzer())
-    am.analyze()
+    camp = [.001, 0.5, .001, .5, .001, 0.5, .001, .5, .001, .001, .001, .001, 0.5, 0.5, 0.5, 0.5, 0.25, 0.25, 0.75, 0.75, 0.5, 0.5, 0.5, 0.5]
+    Mig = [0.2]*24
+    RIF = [1.0, 1.0, 1.5, 1.5, 1.0, 1.0, 1.5, 1.5, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.5, 1.0, 1.5, 1.0, 1.0, 1.0, 1.0]
+    MCV1 = [270, 270, 270, 270, 270, 270, 270, 270, 270, 180, 270, 180, 270, 180, 270, 180, 270, 270, 270, 270,270, 180, 270, 180]
+    MCV2 = [0.25]*24
+    MaB = ['Long','Long','Long','Long','Long','Long','Long','Long','Long','Long','Short','Short','Long','Long','Short','Short','Long','Long','Long','Long','Long','Long','Short','Short']
+    xB = [0.98, 0.98, 0.98, 0.98, 0.85, 0.85, 0.85, 0.85,0.98, 0.98, 0.98, 0.98,0.98, 0.98, 0.98, 0.98,0.98, 0.98, 0.98, 0.98,0.98, 0.98, 0.98, 0.98]
+    #Mig = [*[.02]*8, *[.002]*8, *[.0002]*8]
+    #camp = [.001, .5, .001, .5, .001, .5, .001, .5]*3
+    #RIF = [1.0, 1.0, 1.5, 1.5, 1.0, 1.0, 1.5, 1.5]*3
+    #MCV1 = [270]*24
+    #MCV2 = [.75]*24
+    #MaB = ['Long']*24
+    #xB = [.98, .98, .98, .98, .85, .85, .85, .85]*3
+    basePop = 0.075
+
+    for ind in range(len(camp)):
+        mod_fns = []
+        for n_samples in range(512):
+            names = ['META_Vaccination_Threshold', 'META_Fraction_Meeting', 'META_campaign_coverage', 'Run_Number',
+                     'META_Migration', 'Rural_Infectivity_Multiplier', 'META_MCV1Days', 'META_MaB_Profile', 'META_MCV2Frac',
+                     'x_Birth', 'Base_Population_Scale_Factor', 'META_Timesteps']
+            if random.uniform(0, 1) < 0.33:
+                values = [random.uniform(0.4, 0.99), random.uniform(0.4, 0.99), camp[ind], random.randint(1, 1e6), Mig[ind], RIF[ind],
+                          MCV1[ind], MaB[ind], MCV2[ind], xB[ind], basePop, 3.0]
+            else:
+                values = [0.4 + 0.59 * math.sqrt(random.uniform(0, 1)), 0.4 + 0.59 * math.sqrt(random.uniform(0, 1)), camp[ind],
+                          random.randint(1, 1e6), Mig[ind], RIF[ind], MCV1[ind], MaB[ind], MCV2[ind], xB[ind], basePop, 3.0]
+            mod_fns.append(ModFn(sample_point_fn, names, values))
+
+        builder = ModBuilder.from_combos(mod_fns)
+
+        # Name the experiment
+        exp_name = 'Measles RI targets'
+        run_sim_args = {'config_builder': cb,
+                        'exp_name': exp_name,
+                        'exp_builder': builder}
+
+        exp_manager = ExperimentManagerFactory.from_cb(cb)
+        exp_manager.experiment_tags = {}
+        for name, value in zip(names, values):
+            if name not in ['META_Vaccination_Threshold', 'META_Fraction_Meeting', 'Run_Number']:
+                exp_manager.experiment_tags[name] = value
+        exp_manager.bypass_missing = True
+        exp_manager.run_simulations(**run_sim_args)
+#    exp_manager.wait_for_finished(verbose=True)
+
+#    am = AnalyzeManager('latest')
+#    am.add_analyzer(Output2MatlabAnalyzer())
+#    am.analyze()

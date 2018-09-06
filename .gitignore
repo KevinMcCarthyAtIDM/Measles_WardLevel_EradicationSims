@@ -187,3 +187,11 @@ InputFiles/config_xb102.json
 InputFiles/config_xb105.json
 InputFiles/config_xb98.json
 MatlabAnalysis/testsim.avi
+*.mat
+output_stash/
+MatlabAnalysis/Images/
+MatlabAnalysis/MatFigs/
+*.avi
+*.asv
+Images/
+Experiments/
