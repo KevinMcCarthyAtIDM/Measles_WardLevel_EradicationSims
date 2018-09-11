@@ -113,13 +113,8 @@
     "Simulation_Type": "GENERIC_SIM",
 	"Spatial_Output_Channels": [
       "Population",
-      "Prevalence",
       "New_Infections",
-      "Susceptible Population",
-      "Exposed Population",
       "Infectious Population",
-      "Recovered Population",
-      "Immunized Population"
     ],
 	"Spatial_Output_Days_To_Accumulate":  30,
 	"Susceptibility_Scale_Type": "CONSTANT_SUSCEPTIBILITY",
