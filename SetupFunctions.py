@@ -4,7 +4,7 @@ from scipy.special import erfinv
 
 def sample_point_fn(cb, param_names, param_values):
     tags ={}
-    required_inputs = ['META_Vaccination_Threshold', 'META_Fraction_Meeting', 'META_campaign_coverage', 'META_MCV2Frac']
+    required_inputs = ['META_Vaccination_Threshold', 'META_Fraction_Meeting', 'META_campaign_coverage', 'META_Dropout']
     if not set(required_inputs).issubset(set(param_names)):
         raise ValueError('All of ' + ', '.join(required_inputs) + ' must be inputs to sample_point_fn')
 
@@ -15,7 +15,7 @@ def sample_point_fn(cb, param_names, param_values):
         params_dict[name] = value
 
     RI_Vacc_Setup(cb, params_dict['META_Vaccination_Threshold'], params_dict['META_Fraction_Meeting'],
-                  params_dict['META_MCV2Frac'], tags)
+                  params_dict['META_Dropout'], tags)
     SIA_Coverage_setup(cb, params_dict['META_campaign_coverage'])
 
     #Now I am through the required parameters
@@ -61,12 +61,22 @@ def Setup_Base_Parameters():
 
 def SIA_Coverage_setup(cb, campaign_coverage):
     demog = cb.demog_overlays['demographics.json']
-    LN_sig = 0.1 + 2.4 * (1 - random.random() ** (2.0 / 3.0))
-    LN_mu = math.log(campaign_coverage / (1 - campaign_coverage)) - math.sqrt(2) * LN_sig * erfinv(1 - 2 * 0.5)
-    tmp = [math.exp(LN_mu + LN_sig*random.gauss(0, 1)) for i in range(len(demog['Nodes']))]
-    campaign_coverages = [t/(1+t) for t in tmp]
+    #Logic - if campaign coverage is <0, there are no SIAs
+    #if campaign coverage>=0, there are campaigns that reach 100% of RI children,
+    #plus "campaign_coverage" fraction of the missed kids.
+    demographicCov = 0.0 if campaign_coverage < 0 else 1.0
+
+    if campaign_coverage <= 0:
+        campaign_coverages = [0.0]*len(demog['Nodes'])
+    else:
+        LN_sig = 0.1 + 2.4 * (1 - random.random() ** (2.0 / 3.0))
+        LN_mu = math.log(campaign_coverage / (1 - campaign_coverage)) - math.sqrt(2) * LN_sig * erfinv(1 - 2 * 0.5)
+        tmp = [math.exp(LN_mu + LN_sig*random.gauss(0, 1)) for i in range(len(demog['Nodes']))]
+        campaign_coverages = [t/(1+t) for t in tmp]
 
     for event in cb.campaign.Events:
+        if event.Event_Name.startswith('SIA'):
+            event.Event_Coordinator_Config.Demographic_Coverage = demographicCov
         if event.Event_Name == 'SIAs - SIAOnly Group':
             event.Event_Coordinator_Config.Coverage_By_Node = []
             for ii in range(len(demog['Nodes'])):
@@ -74,7 +84,7 @@ def SIA_Coverage_setup(cb, campaign_coverage):
                     [demog['Nodes'][ii]['NodeID'], campaign_coverages[ii]])
 
 
-def RI_Vacc_Setup(cb, threshold, fraction_meeting, MCV2, tags):
+def RI_Vacc_Setup(cb, threshold, fraction_meeting, Dropout, tags):
     # RI Vaccination is all set up in the demographics file using individual properties
     # Draw a random variance and construct the coverages from a logitnormal distribution
     #LN_sig = 0.1 + 1.4 * (1 - random.random() ** (2.0 / 3.0))  # slightly bias variance down relative to uniform
@@ -101,7 +111,7 @@ def RI_Vacc_Setup(cb, threshold, fraction_meeting, MCV2, tags):
         wardcov = tmp2 / (1 + tmp2)
         node['IndividualProperties'] = []
         node['IndividualProperties'].append(demog['Defaults']['IndividualProperties'][0].copy())
-        node['IndividualProperties'][0]['Initial_Distribution'] = [MCV2*wardcov, (1-MCV2)*wardcov, 1-wardcov]
+        node['IndividualProperties'][0]['Initial_Distribution'] = [(1-Dropout)*wardcov, (Dropout)*wardcov, 1-wardcov]
 
     cb.demog_overlays['demographics.json'] = demog
 
@@ -119,6 +129,12 @@ def MetaParameterHandler(cb, param, value, tags):
                 event.Event_Coordinator_Config.Intervention_Config.Actual_IndividualIntervention_Config.Delay_Period_Mean = value
                 event.Event_Coordinator_Config.Intervention_Config.Actual_IndividualIntervention_Config.Delay_Period_Std_Dev = value/6.0
         tags['MCV1_Dose_Days'] = value
+    if param == 'META_MCV2Days':
+        for event in cb.campaign.Events:
+            if event.Event_Name == 'MCV2':
+                event.Event_Coordinator_Config.Intervention_Config.Actual_IndividualIntervention_Config.Delay_Period_Mean = value
+                event.Event_Coordinator_Config.Intervention_Config.Actual_IndividualIntervention_Config.Delay_Period_Std_Dev = value/6.0
+        tags['MCV2_Dose_Days'] = value
     if param == 'META_MaB_Profile':
         mAb_profiles = {'Long': [150, 50], 'Short': [90, 30], 'Mix': [120, 51]}
         cb.set_param('Maternal_Sigmoid_HalfMaxAge', mAb_profiles[value][0])

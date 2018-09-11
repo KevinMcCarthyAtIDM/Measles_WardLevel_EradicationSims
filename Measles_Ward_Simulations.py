@@ -38,34 +38,36 @@ if __name__ == "__main__":
 
     SetupParser.init('HPC')
 
-    #camp = [.5, .5, .5, .001, .001, .001, .25, .25, .25, .75, .75, .75]*4
-    #Mig = [0.2]*48
-    #RIF = [1.0]*48
-    #MCV1 = [*[270]*12, *[180]*12]*2
-    #MCV2 = [0.25, 0.5, 1.0]*16
-    #MaB = [*['Long']*24, *['Short']*24]
-    #xB = [0.98]*48
-    #Mig = [*[.02]*8, *[.002]*8, *[.0002]*8]
-    #camp = [.001, .5, .001, .5, .001, .5, .001, .5]*3
-    #RIF = [1.0, 1.0, 1.5, 1.5, 1.0, 1.0, 1.5, 1.5]*3
-    #MCV1 = [270]*24
-    #MCV2 = [.75]*24
-    #MaB = ['Long']*24
-    #xB = [.98, .98, .98, .98, .85, .85, .85, .85]*3
+    #Scenarios to run - 28:
+
+    UrbanMultiplier = [2, 2, 1.5, *[2]*25]
+    RuralMultiplier = [1, 1.5, *[1]*26]
+    Migration = [*[0.2]*3, 0.02, 0.002, 0.0002, *[0.2]*22]
+    SIACov = [*[0.5]*6, -1, 0, .25, .75, *[0.5]*11, 0, 0.25, 0.75, *[-1]*4]
+    Dropout = [*[0.25]*10, 0, 0.5, 0.75, 1.0, *[0.25]*7, *[1.0]*3, 0, 0.5, 0.75, 1.0]
+    MCV2Days = [*[365]*14, 455, *[365]*13]
+    MCV1Days = [*[270]*15, 180, 270, 180, *[270]*10]
+    mAbProfile = [*['Mix']*16, 'Short', 'Short', *['Mix']*10]
+    BirthRateScale= [*[0.98]*18, 0.905, 0.85, 0.81, *[0.98]*7]
     basePop = 0.075
 
-    for ind in range(len(camp)):
+    for ind in range(len(UrbanMultiplier)):
         mod_fns = []
         for n_samples in range(512):
             names = ['META_Vaccination_Threshold', 'META_Fraction_Meeting', 'META_campaign_coverage', 'Run_Number',
-                     'META_Migration', 'Rural_Infectivity_Multiplier', 'META_MCV1Days', 'META_MaB_Profile', 'META_MCV2Frac',
-                     'x_Birth', 'Base_Population_Scale_Factor', 'META_Timesteps']
+                     'META_Migration', 'Rural_Infectivity_Multiplier', 'Urban_Infectivity_Multiplier',
+                     'META_MCV1Days', 'META_MaB_Profile', 'META_Dropout',
+                     'META_MCV2Days', 'x_Birth', 'Base_Population_Scale_Factor', 'META_Timesteps']
             if random.uniform(0, 1) < 0.33:
-                values = [random.uniform(0.4, 0.99), random.uniform(0.4, 0.99), camp[ind], random.randint(1, 1e6), Mig[ind], RIF[ind],
-                          MCV1[ind], MaB[ind], MCV2[ind], xB[ind], basePop, 3.0]
+                values = [random.uniform(0.4, 0.99), random.uniform(0.4, 0.99),
+                          SIACov[ind], random.randint(1, 1e6), Migration[ind], RuralMultiplier[ind],
+                          UrbanMultiplier[ind], MCV1Days[ind], mAbProfile[ind],
+                          Dropout[ind], MCV2Days[ind], BirthRateScale[ind], basePop, 3.0]
             else:
-                values = [0.4 + 0.59 * math.sqrt(random.uniform(0, 1)), 0.4 + 0.59 * math.sqrt(random.uniform(0, 1)), camp[ind],
-                          random.randint(1, 1e6), Mig[ind], RIF[ind], MCV1[ind], MaB[ind], MCV2[ind], xB[ind], basePop, 3.0]
+                values = [0.4 + 0.59 * math.sqrt(random.uniform(0, 1)), 0.4 + 0.59 * math.sqrt(random.uniform(0, 1)),
+                          SIACov[ind], random.randint(1, 1e6), Migration[ind], RuralMultiplier[ind],
+                          UrbanMultiplier[ind], MCV1Days[ind], mAbProfile[ind],
+                          Dropout[ind], MCV2Days[ind], BirthRateScale[ind], basePop, 3.0]
             mod_fns.append(ModFn(sample_point_fn, names, values))
 
         builder = ModBuilder.from_combos(mod_fns)
