@@ -16,7 +16,7 @@ for expind = 1:length(experiments)
     if ~exist([expdir '\condensed_output.mat'], 'file')
         sim_metadata = loadJson([expdir '\metadata_output.json']);
         sims = dir([expdir '\*.mat']);
-        outcomes = zeros(1, length(sims));
+        eradicated = zeros(1, length(sims));
         simlen = zeros(1, length(sims));
         threshold = zeros(1, length(sims));
         fraction = zeros(1, length(sims));
@@ -33,18 +33,16 @@ for expind = 1:length(experiments)
                 simfield = ['alpha_' simfield];
             end
             params = sim_metadata.(simfield);
-            outcomes(simind) = simouts.allInfected(end) == 0 || length(simouts.allInfected)<3041;
+            eradicated(simind) = simouts.allInfected(end) == 0 || length(simouts.allInfected)<3041;
             simlen(simind) = length(simouts.allInfected);
             threshold(simind) = params.META_Vaccination_Threshold;
             fraction(simind) = params.META_Fraction_Meeting;
-        end
-        if isfield(params, 'LN_mu')
             LN_mu(simind) = params.LN_mu;
             LN_sig(simind) = params.LN_sig;
-            save([expdir '\condensed_output.mat'], 'outcomes', 'threshold', 'fraction', 'exp_metadata', 'LN_mu', 'LN_sig');
-        else
-            save([expdir '\condensed_output.mat'], 'outcomes', 'threshold', 'fraction', 'exp_metadata');
         end
+
+        save([expdir '\condensed_output.mat'], 'eradicated', 'threshold', 'fraction', 'exp_metadata', 'LN_mu', 'LN_sig');
+
     end
    
 end

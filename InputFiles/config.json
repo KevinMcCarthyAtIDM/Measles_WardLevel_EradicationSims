@@ -115,6 +115,11 @@
       "Population",
       "New_Infections",
       "Infectious Population",
+	  "Exposed Population",
+	  "Immunized Population",
+	  "Recovered Population",
+	  "Susceptible Population",
+	  "Prevalence"
     ],
 	"Spatial_Output_Days_To_Accumulate":  30,
 	"Susceptibility_Scale_Type": "CONSTANT_SUSCEPTIBILITY",

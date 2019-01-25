@@ -54,7 +54,7 @@ def Setup_Base_Parameters():
     # mAB_prfiles = [(150, 50), (90, 30), (120, 51)]
     params_dict['Maternal_Sigmoid_HalfMaxAge'] = 150
     params_dict['Maternal_Sigmoid_SteepFac'] = 50
-    params_dict['Maternal_Sigmoid_SusInit'] = 0.05
+    params_dict['Maternal_Sigmoid_SusInit'] = 0.00
     params_dict['Simulation_Duration'] = 9125
     return params_dict
 

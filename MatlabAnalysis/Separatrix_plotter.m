@@ -11,11 +11,13 @@ init_vec = zeros(length(experiments), 1);
 init_cell = cell(length(experiments), 1);
 allouts.BirthRate = init_vec;
 allouts.CampaignCov = init_vec;
-allouts.MCV2Frac = init_vec;
+allouts.Dropout = init_vec;
 allouts.MCV1Age = init_vec;
+allouts.MCV2Age = init_vec;
 allouts.MaBProfile = init_cell;
 allouts.MigrationRate = init_vec;
 allouts.RuralR0 = init_vec;
+allouts.UrbanR0 = init_vec;
 allouts.threshold = init_cell;
 allouts.fraction = init_cell;
 allouts.eradicated = init_cell;
@@ -25,6 +27,7 @@ allouts.x = init_cell;
 allouts.y = init_cell;
 allouts.C50 = init_cell;
 allouts.C75 = init_cell;
+allouts.C80 = init_cell;
 allouts.expID = init_cell;
 
 for expind = 1:length(experiments)
@@ -43,23 +46,10 @@ for expind = 1:length(experiments)
     expdir = [basedir exper.name];
     assert(exist([expdir '\condensed_output.mat'], 'file')~=0, ['No condensed output for Experiment ' exper.name]);
     outs = load([expdir '\condensed_output.mat']);
-    if ~isfield(exp_metadata, 'x_Birth')
-        exp_metadata.x_Birth = '0.98';
-        exp_metadata.META_MCV2Frac = '0.75';
-        exp_metadata.META_MaB_Profile = 'Long';
-        exp_metadata.Base_Population_Scale_Factor = '0.075';
-    end
-    if isfield(exp_metadata, 'META_Campaign_Coverage')
-        exp_metadata.META_campaign_coverage = exp_metadata.META_Campaign_Coverage;
-    end
-    if isfield(exp_metadata, 'MCV1_Dose_Days')
-        exp_metadata.META_MCV1Days = exp_metadata.MCV1_Dose_Days;
-    end
-        
     
     figure(h1);
     clf;
-    cc = outs.outcomes==1;
+    cc = outs.eradicated==1;
     if ismember(sum(cc), [0, 512])
         continue
     end
@@ -69,6 +59,7 @@ for expind = 1:length(experiments)
     beta = beta*sum(~cc);
     [C50, ~] = contour(x, y, alpha./(alpha+beta), [.5, .5]);
     [C75, ~] = contour(x, y, alpha./(alpha+beta), [.75, .75]);
+    [C80, ~] = contour(x, y, alpha./(alpha+beta), [.80, .80]);
     surf(x, y, alpha./(alpha+beta), 'EdgeColor', 'none');
     hold on
     caxis([0, 1]);
@@ -80,13 +71,27 @@ for expind = 1:length(experiments)
     set(get(cb, 'YLabel'), 'String', 'Elimination Probability');
     
     migdict = struct('x0p2', 'High', 'x0p02', 'Moderate', 'x0p002', 'Low', 'x0p0002', 'Disconnected');                  
-    birthdict = struct('x0p98', '2.5%/yr', 'x0p85', '0.5%/yr');
-    mystr = ['Urban R_{0}: 24; Rural R_{0}: ' num2str(12*str2double(exp_metadata.Rural_Infectivity_Multiplier)) newline ...
-             'MCV2 coverage: ' num2str(100*str2double(exp_metadata.META_MCV2Frac)) '% of MCV1 coverage' newline ...
-             'SIAs reach ' num2str(100*str2double(exp_metadata.META_campaign_coverage)) '% of unvacc' newline ...
+    if str2double(exp_metadata.META_campaign_coverage) == -1
+        campstring = 'No SIAs';
+    elseif str2double(exp_metadata.META_campaign_coverage) == 0
+        campstring = 'SIAs reach only routine-accessible children';
+    else
+        campstring = ['SIAs reach ' num2str(100*str2double(exp_metadata.META_campaign_coverage)) '% of RI-missed children'];
+    end
+    if strcmpi(exp_metadata.META_MaB_Profile, 'Mix')
+        mAbstr = 'mixed short and long mAb';
+    else
+        mAbstr = [exp_metadata.META_MaB_Profile '-lived mAb'];
+    end
+    birthdict = struct('x0p98', '2.5%/yr', 'x0p85', '0.5%/yr', 'x0p905', '1.5%/yr', 'x0p81', '0%/yr');
+    mystr = ['Urban R_{0}: ' num2str(12*str2double(exp_metadata.Urban_Infectivity_Multiplier)) ...
+             '; Rural R_{0}: ' num2str(12*str2double(exp_metadata.Rural_Infectivity_Multiplier)) newline ...
+             'MCV1-MCV2 dropout rate: ' num2str(100*str2double(exp_metadata.META_Dropout)) '%' newline ...
+             campstring newline ...
              'Migration Rate: ' migdict.(['x' strrep(exp_metadata.META_Migration, '.', 'p')]) newline ...
              'Pop growth rate: ' birthdict.(['x' strrep(exp_metadata.x_Birth, '.', 'p')]) newline ...
-             'MCV1 at ' num2str(floor(str2double(exp_metadata.META_MCV1Days)/30)) ' months, ' exp_metadata.META_MaB_Profile '-lived mAb'];
+             'MCV1 at ' num2str(floor(str2double(exp_metadata.META_MCV1Days)/30)) ' months' newline ...
+             'MCV2 at ' num2str(floor(str2double(exp_metadata.META_MCV2Days)/30)) ' months, ' mAbstr];
     t = annotation('textbox', [.15, .17, .1, .1], 'String', mystr, 'FitBoxToText', 'on');
     t.BackgroundColor = 'w';
     t.FontSize = 14;
@@ -97,7 +102,10 @@ for expind = 1:length(experiments)
     saveas(h1, ['MatFigs\' exper.name '_heatmap.fig']);
     
     hold on
-    plot3(C50(1, 2:end), C50(2, 2:end), ones(1, length(C50)-1), 'k-', 'LineWidth', 4);
+    brackets = SplitVec(C80(1, :)==0.8, 'equal', 'bracket');
+    for ii = 2:2:size(brackets, 1)
+        plot3(C80(1, brackets(ii, 1):brackets(ii, 2)), C80(2, brackets(ii, 1):brackets(ii, 2)), ones(1, brackets(ii, 2)-brackets(ii,1)+1), 'k-', 'LineWidth', 4);
+    end
     myprint('-dpng', ['Images\' exper.name '_heatmap_wcontour.png']);
     saveas(h1, ['MatFigs\' exper.name '_heatmap_wcontour.fig']);
     
@@ -107,24 +115,27 @@ for expind = 1:length(experiments)
     saveas(h1, ['MatFigs\' exper.name '_heatmap_wpts_contour.fig']);
     clf;
   
-%     allouts.BirthRate(expind) = str2double(exp_metadata.x_Birth);
-%     allouts.CampaignCov(expind) = str2double(exp_metadata.META_campaign_coverage);
-%     allouts.MCV2Frac(expind) = str2double(exp_metadata.META_MCV2Frac);
-%     allouts.MCV1Age(expind) = str2double(exp_metadata.META_MCV1Days);
-%     allouts.MaBProfile{expind} = exp_metadata.META_MaB_Profile;
-%     allouts.MigrationRate(expind) = str2double(exp_metadata.META_Migration);
-%     allouts.RuralR0(expind) = str2double(exp_metadata.Rural_Infectivity_Multiplier)*12;
-%     allouts.threshold{expind} = outs.threshold;
-%     allouts.fraction{expind} = outs.fraction;
-%     allouts.eradicated{expind} = cc;
-%     allouts.alpha{expind} = alpha;
-%     allouts.beta{expind} = beta;
-%     allouts.x{expind} = x;
-%     allouts.y{expind} = y;
-%     allouts.C50{expind} = C50;
-%     allouts.C75{expind} = C75;
-%     allouts.expID{expind} = exper.name;
-%     save('allouts.mat', 'allouts');
+    allouts.BirthRate(expind) = str2double(exp_metadata.x_Birth);
+    allouts.CampaignCov(expind) = str2double(exp_metadata.META_campaign_coverage);
+    allouts.Dropout(expind) = str2double(exp_metadata.META_Dropout);
+    allouts.MCV1Age(expind) = str2double(exp_metadata.META_MCV1Days);
+    allouts.MCV2Age(expind) = str2double(exp_metadata.META_MCV2Days);
+    allouts.MaBProfile{expind} = exp_metadata.META_MaB_Profile;
+    allouts.MigrationRate(expind) = str2double(exp_metadata.META_Migration);
+    allouts.RuralR0(expind) = str2double(exp_metadata.Rural_Infectivity_Multiplier)*12;
+    allouts.UrbanR0(expind) = str2double(exp_metadata.Urban_Infectivity_Multiplier)*12;
+    allouts.threshold{expind} = outs.threshold;
+    allouts.fraction{expind} = outs.fraction;
+    allouts.eradicated{expind} = cc;
+    allouts.alpha{expind} = alpha;
+    allouts.beta{expind} = beta;
+    allouts.x{expind} = x;
+    allouts.y{expind} = y;
+    allouts.C50{expind} = C50;
+    allouts.C75{expind} = C75;
+    allouts.C80{expind} = C80;
+    allouts.expID{expind} = exper.name;
+    save('allouts.mat', 'allouts');
 %     if isfield(outs, 'LN_mu')
 %         %Invert the quantile distribution for logitnormal to let each sim
 %         %inform a full curve in the x-y space
