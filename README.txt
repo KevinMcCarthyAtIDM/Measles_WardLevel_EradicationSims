@@ -66,7 +66,38 @@ Loop over each experiment to be built - create an empty list of "mod_fns".
 	Call ModBuilder to build the experiment.  Give it a name and set experiment tags (recording all experiment scenario parameters and excluding the Run Number and the two meta parameters that vary for each simulation).
 	Run the experiment
 
+I think it makes sense briefly describe here the setup for building later iterations as well. The Measles_Ward_Simulations_iterx.py files proceed very similarly to the process described above.  However, after the first round of analysis, we will end up with a file "MatlabAnalysis\outputs.json" (or "outputs_iter2.json, ...) that guides the next set of simulations as follows:
+Set up the configBuilder as in iteration 0.  
+	Load "outputs.json".  It contains a list of dicts, and each element of this list describes one of the experiments run in the previous iteration, recording all of the "scenario parameters", the experiment ID, and a contour of interest where the next set of simulations should be located.
+For each dict in the list:
+	Set up all of the "scenario parameters" so that this experiment is consistent with the previous experiment we are iterating on.
+	Record the last experiment ID.
+	Loop to build the simulations:
+		Get a random point from "contourx" and "contoury", the recorded contour of interest from the previous iteration.
+		Place a sample near that point, with random Gaussian nose.  If the point is outside of 0.4, 0.99 in either x or y, try again.
+From here, experiment building proceeds as in the first iteration.
 
+
+
+
+Experiment Analysis:
+The function "Measles_Ward_Simulations_Analyze.py" pulls down simulation results for analysis, though most of the real analysis is done in matlab.  The function is fairly simple:
+Create a list of all experiments that should be analyzed.  
+Loop over this list:
+	If there already exists a folder for this experiment in the "Experiments" folder, or if any simulations have not completed, skip.
+	Otherwise, get tags for the experiment and record them in the file "Experiments\experiment_metadata.json"
+	Use the analyzer Output2MatlabAnalyzer to analyze the experiments.
+
+Output2MatlabAnalyzer is contained in the folder "Python Analysis.  In brief, here is what it does:
+Make an output directory for the experiment
+Retrieve the InsetChart, Age at infection histogram report, and spatial reports (defined in self.filenames) for each simulation.
+Shorten insetChart channel names, because if they are too long it cannot save the output.
+Get simID, ExpId, and save all of the data for this simulation to a matlab file in the experiment directory.
+Finally, after all simulations are saved, write a metadata file in the experiment directory ("experiments\[ExpId]\metadata_output.json"), that records all simulation tags.
+
+
+
+Matlab Analysis:
 
 
 

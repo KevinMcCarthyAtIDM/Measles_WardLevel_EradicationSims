@@ -36,7 +36,7 @@ if __name__ == "__main__":
     SetupParser.init('HPC')
 
     #Scenarios to run - 28:
-    with open ('MatlabAnalysis\\outputs_iter2.json') as json_data:
+    with open ('MatlabAnalysis\\outputs.json') as json_data:
         myparams = json.load(json_data)
 
     basePop = 0.075
