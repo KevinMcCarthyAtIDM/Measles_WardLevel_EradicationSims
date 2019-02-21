@@ -76,11 +76,9 @@ if __name__ == "__main__":
 
         run_sim_args = {'config_builder': cb,
                         'exp_name': exp_name,
-                        'exp_builder': builder,
-                        'suite_id':suite_id}
+                        'exp_builder': builder}
 
         exp_manager.experiment_tags = {}
-        exp_manager.experiment_tags = {'prev_expID': expID[ind]}
         for name, value in zip(names, values):
             if name not in ['META_Vaccination_Threshold', 'META_Fraction_Meeting', 'Run_Number']:
                 exp_manager.experiment_tags[name] = value
