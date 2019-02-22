@@ -1,9 +1,11 @@
 README on how the code in this folder is structured and how to use it:
+This is an example of how I did a Separatrix by hand, so Zhaowei, as you look through this, it should hopefully serve a bit to inform how we might translate the old matlab separatrix code into dtk-tools.  A key difference is that in this implementation, I ran batches of experiments, each representing a scenario, and then iterated by creating new experiments as iterations on those scenarios.  I did a lot of bookkeeping in json files to link new experiments to old ones.  The ideal implementation of Separatrix would spawn a suite, and each iteration would be an experiment within that suite instead of how I did it here.
 
 Action items:
 Bring local dtk-tools into agreement with master and ensure that everything still works.  Push changes to CustomReport.py
 Create pull requests for necessary features (Age dependent vaccine take, Spatial report accumulation, and urban rural r0 scaling) into DTK Trunk
 Remove all magic numbers - define these in-line as variables somewhere with descriptive names, consider an arg-parser to set them from command line as well.
+Send simulation outputs and all intermediate files to a Dropbox folder instead of keeping them located in the repository.
 Suggestions for cleaning up/improving tracking of experiment building?
 Suggestions for cleaning up the "sample pt function code"?
 Suggestions for cleaning up, removing intermediate files from demographic file building?
@@ -13,7 +15,6 @@ Look for opportunities where code should be pulled into dtk-tools or something s
 
 Input file generation
 First step - build demographics and migration files.
-
 
 Demographics file creation:
 In folder "DemographicFileGeneration"
@@ -77,6 +78,56 @@ For each dict in the list:
 		Place a sample near that point, with random Gaussian nose.  If the point is outside of 0.4, 0.99 in either x or y, try again.
 From here, experiment building proceeds as in the first iteration.
 
+The last bit of code necessary for experiment building should be the setup functions in SetupFunctions.py.  The first function in this file defines "sample_point_fn", which is the mod_fn used in the builder.  The behavior of the functions in here are as follows:
+sample_point_fn is the main function that will be called by the builder.  
+
+sample_point_fn()
+Initialize an empty set of simulation tags.  
+Check for required inputs.
+Setup "Base parameters" - default parameter setup for the configuration file (could also just change the base configuration to reflect all of these)
+Call RI_Vacc_Setup to set up the routine vaccination configuration.  This requires the metaparameters "vaccination threshold" and "fraction of nodes meeting that threshold", which are the main parameters varied by simulation.  It also takes a metaparameter called "Dropout", which sets the ratio of first and second-dose routine coverage with measles vaccine.  
+Call SIA_Coverage_Setup to set up the campaign coverage by node.
+Loop over all other parameters.  If parameter is a meta parameter, call "MetaParameterHandler", which defines special behavior when I need to vary multiple config/campaign parameters at once.  If parameter is not a meta parameter, just call the standard config_builder.set_param.  
+Save all parameters in tags, and return the tags.
+
+RI_Vacc_Setup():
+This is a tricky one.  The vaccination threshold and fraction of nodes meeting that threshold do not actually completely define a distribution.  However, making some assumptions - the distribution is normal in logit space (a transform of probability), I can draw a random value for the variance and solve for the mean, and then draw a distribution consistent with the threshold/fraction meeting constraint.  A second complication is that the operational threshold is generally defined in terms of districts, but the nodes are smaller than districts, so we need to apply this constraint at district level but allow some extra variance on the nodes in a district. The code proceeds as follows: 
+Draw a random number from 0 to 4, which will be the standard deviation of the distribution.
+Solve for the mean, given the standard deviation, the threshold, and the fraction of districts above that threshold.
+Find all unique district names - each node has an associated dot_name in it's metadata - country:province:district:ward.  Split this string for all nodes and find the unique country:province:district tuplets.  
+Draw a random value of coverage for each district as follows:
+    for name in unique_district_names:
+        tmp = math.exp(LN_mu + LN_sig * random.gauss(0, 1))
+        district_coverages[name] = tmp / (1 + tmp)
+
+The math here relates the coverages in probability space to the random numbers in logit-space (p = e^x/(1+e^x) ). 
+Now, loop over each node.
+Find which district it is in and get the corresponding district-level coverage.
+Add a little bit of extra noise:
+        tmp = math.log(distcov / (1 - distcov))  #transform back to logit space
+        tmp2 = math.exp(tmp + 0.2 * random.gauss(0, 1)) #add a bit of noise here, 0.2 (magic number, should fix this!)
+        wardcov = tmp2 / (1 + tmp2)  #convert back to probability space
+
+Now, since routine immunization is governed by IndividualProperties, we'll be setting the distribution of individual properties for this node as follows:
+        node['IndividualProperties'][0]['Initial_Distribution'] = [(1-Dropout)*wardcov, (Dropout)*wardcov, 1-wardcov]
+
+	Dropout defines the probability of somebody getting 1 dose instead of 2, so in the above, the first group gets 2 doses (coverage*(1-Dropout)), the second group gets only 1 dose (coverage * Dropout), and the last get no doses: (1-coverage).
+	After we've covered all nodes, put the new demographic file as an overlay for config-builder.
+
+SIA_Coverage_setup:
+A little simpler than the RI coverage setup, but very similar.  Note that the "campaign coverage" parameter, as implemented, is the campaign coverage only for children who are in the "SIAOnly" group - children in the "MCV1" or "MCV2" groups will always be covered.
+
+First, if campaign coverage is <=0, this is a signal for no campaigns at all -> demographic Coverage = 0.
+Otherwise, we set demographic Coverage = 1, and use the coverage by node coordinator to change coverage on a node by node basis.
+Similar to above, draw a random variance of the campaign coverage distribution, and draw random numbers in logit-space to set campaign coverages for each node.  
+
+Loop over events in the campaign file:
+if the event is an SIA, set demographic Coverage to 0 or 1 as determined above.
+if the event is the SIAs targeted to the SIAonly group, additionally fill the "Coverage_By_Node" property with the random campaign coverages drawn above.
+
+The last piece of code in SetupFunctions.py is the MetaParameterHandler.  In short, this function lets me use "metaparameters" to set multiple config/campaign parameters at once.  
+So for example, if the parameter passed in is "META_MaB_Profile", I want to set the maternal antibody profile, which is governed by two config parameters - Maternal_Sigmoid_HalfMaxAge, and Maternal_Sigmoid_SteepFac.  In MetaParameterHandler, the appropriate code to do this is implemented.  
+Or another example - META_Timesteps.  If I change the Simulation_Timestep from a value of 1 to a value of T, I need to change other parameters (i.e., Timesteps_Between_Repetitions for all campaign events needs to be changed to 1/T.)  This is handled here.  
 
 
 
@@ -98,7 +149,20 @@ Finally, after all simulations are saved, write a metadata file in the experimen
 
 
 Matlab Analysis:
+The matlab analysis folder is a very poorly organized folder of scripts to analyze simulation outputs, generate some figures, and store results to enable further iteration of the experiments.
+The first piece of code to be run is called "Separatrix_datagetter.m".  This file loops over all of the experiments, load all simulations for each experiment, and condenses the outputs of interest into a single file, which helps speed up downstream analysis.  Rather than describe in detail here, I've commented extensively in the m-file to help readability.
 
+The next code of interest is in Separatrix_plotter.m.  Due to poor code architecting, this piece of code both performs the separatrix analysis and produces a set of figures; it is also copied three times into "Separatrix_plotter_2exps" and "..._3exps" to handle the analysis and plotting after the second and third iteration.  It's a bit of a beast, and I'll describe it a bit here and try to comment extensively in the file itself.  Note that the _2exps and _3exps versions follow much the same path, but have some additional bookkeeping to do the analysis on the results from multiple experiments.  I'll describe the initial version first.  
 
+In Separatrix_plotter - 
+First, initialize a structure that will hold experiment metadata, simulation parameters, and analysis results for all experiments.
+Loop over the experiments, and construct a probability surface of successful eradication vs. failure to eradicate.  Find the 50, 75, and 80% contours of this probability surface.  Make some figures and cache the metadata, sim parameters, and analysis results.  After looping over all experiments, save all of the cached data.
+More extensive comments are embedded in the code.
+Separatrix_plotter_iter2 and _iter3 do much the same thing as separatrix_plotter, but with extra bookkeeping to combine results from multiple experiments that represent iterations of a particular scenario.
+Also unfortunately, the code for Separatrix_pltter doesn't really check whether the experiment belongs to the appropriate iteration, and so if I re-run Separatrix_plotter, it will probably plot results for all experiments independently, including the later iterations, when it should really only plot results from the first iteration.  Separatrix_plotter_iter2 and _iter3 do have version checking - they look for whether the experiment metadata contains a field called "prev_expID" (iter2) or "prev_expID1", "prev_expID2" in iter3.  Similar checking would be good for the first iteration.  
+
+The last piece of code of interest here is "output_table_to_jsondict", which loads the output matlab file produced by Separatrix_plotter, and converts the outputs of interest and experiment scenario parameters/IDs to a json file that can be read by the experiment builders for the second and third iterations of simulations.  Again, comments embedded in the code
+
+Remaining code in this folder generates specific figures that combine results from multiple experiment scenarios (i.e., I define a baseline scenario, and compare the three iterations of that scenario with other scenarios that vary one of the parameters - e.g., lower birth rate, or different migration, or different vaccine schedules, etc.)
 
 
