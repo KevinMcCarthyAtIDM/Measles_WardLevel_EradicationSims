@@ -11,11 +11,17 @@ import scipy.spatial.distance as dist
 import json
 import math
 import os
+from dtk.tools.demographics.DemographicsFile import DemographicsFile
+from dtk.tools.demographics.Node import Node
 
-#Haversine takes long/lat pairs IN RADIANS and computes the haversine distance between them
+# Haversine takes long/lat pairs IN RADIANS and computes the haversine distance between them
+from dtk.tools.migration.MigrationFile import MigrationFile
+
+
 def haversine(p1, p2):
-    delta = p1-p2
-    return math.fabs(math.asin(math.sqrt(math.sin(delta[1]/2)**2 + math.cos(p1[1])*math.cos(p2[1])*math.sin(delta[0]/2)**2) ) )
+    delta = p1 - p2
+    return math.fabs(math.asin(
+        math.sqrt(math.sin(delta[1] / 2) ** 2 + math.cos(p1[1]) * math.cos(p2[1]) * math.sin(delta[0] / 2) ** 2)))
 
 
 def migration_outputs_by_channel(Types, nodeIDs, distances, migration_matrix, maxConnections):
@@ -50,31 +56,34 @@ def migration_outputs_by_channel(Types, nodeIDs, distances, migration_matrix, ma
     return outputdict
 
 
-def compute_gravity_matrix( pops, distances, exponents, normalize=True):
-    np.fill_diagonal(distances, 1000000)  #Prevent divide by zero errors and self migration
+def compute_gravity_matrix(pops, distances, exponents, normalize=True):
+    np.fill_diagonal(distances, 1000000)  # Prevent divide by zero errors and self migration
 
     migration_matrix = np.ones_like(distances)
     pops = pops[:, np.newaxis].T
     pops = np.repeat(pops, pops.size, axis=0)
-    migration_matrix = migration_matrix*(pops**exponents['Destination'])*(pops.T**(exponents['Source']-1))
-    migration_matrix = migration_matrix/((distances + 10)**exponents['Distance']) #impose a minimum distance value to prevent excessive migration nearby
+    migration_matrix = migration_matrix * (pops ** exponents['Destination']) * (pops.T ** (exponents['Source'] - 1))
+    migration_matrix = migration_matrix / ((distances + 10) ** exponents[
+        'Distance'])  # impose a minimum distance value to prevent excessive migration nearby
     np.fill_diagonal(migration_matrix, 0)
 
-    #Set average outbound migration = 1
+    # Set average outbound migration = 1
     if normalize:
-        migration_matrix = migration_matrix/np.mean(np.sum(migration_matrix, axis=1))
-	
+        migration_matrix = migration_matrix / np.mean(np.sum(migration_matrix, axis=1))
+
     return migration_matrix
 
 
 def write_outputs_to_textfiles(base_demog_dir, base_demog_file, outputdict):
     for mig_type, outputs in outputdict.items():
-        outputfile_name = base_demog_file.replace('demographics.json', mig_type.lower()+'_migration.txt')
+        outputfile_name = base_demog_file.replace('demographics.json', mig_type.lower() + '_migration.txt')
         with open(outputfile_name, 'w') as f:
             for d1 in range(outputs['Rates'].shape[0]):
                 for d2 in range(outputs['Rates'].shape[1]):
-                    f.write(str(outputs['sourceIDs'][d1])+' '+str(outputs['destIDs'][d1, d2])+' '+str(outputs['Rates'][d1, d2])+'\n')
-        os.system('python buildMigrationFiles.py -d ' + base_demog_dir+base_demog_file + ' -r ' + outputfile_name + ' -t ' + mig_type.upper())
+                    f.write(str(outputs['sourceIDs'][d1]) + ' ' + str(outputs['destIDs'][d1, d2]) + ' ' + str(
+                        outputs['Rates'][d1, d2]) + '\n')
+        os.system(
+            'python buildMigrationFiles.py -d ' + base_demog_dir + base_demog_file + ' -r ' + outputfile_name + ' -t ' + mig_type.upper())
 
 
 if __name__ == "__main__":
@@ -88,25 +97,39 @@ if __name__ == "__main__":
     Types = ['Local', 'Air']
 
     if 'Local' in Types:
-        Types.insert(0, Types.pop(Types.index('Local'))) #Important to have local up first
+        Types.insert(0, Types.pop(Types.index('Local')))  # Important to have local up first
 
-    with open(base_demog_dir+base_demog_file, 'r') as f:
-        base_demog = json.load(f)
-    lats =    np.deg2rad(np.array([n['NodeAttributes']['Latitude']            for n in base_demog['Nodes']]))
-    longs =   np.deg2rad(np.array([n['NodeAttributes']['Longitude']           for n in base_demog['Nodes']]))
-    pops =    np.array([n['NodeAttributes']['InitialPopulation']              for n in base_demog['Nodes']])
-    nodeIDs = np.array([n['NodeID']                                           for n in base_demog['Nodes']])
+    # Load file to DemographicsFile class
+    dg = DemographicsFile.from_file(base_demog_dir + base_demog_file)
+    nodes = dg.nodes.values()
+    lats = np.deg2rad(np.array([n.lat for n in nodes]))
+    longs = np.deg2rad(np.array([n.lon for n in nodes]))
+    pops = np.array([n.pop for n in nodes])
+    nodeIDs = np.array([n.id for n in nodes])
 
-    distances = 2*earth_radius*dist.squareform(dist.pdist(np.vstack((longs, lats)).T, haversine))
+    # Calculate migration matrix
+    distances = 2 * earth_radius * dist.squareform(dist.pdist(np.vstack((longs, lats)).T, haversine))
     migration_matrix = compute_gravity_matrix(pops, distances, exponents, normalize=True)
-
     outputdict = migration_outputs_by_channel(Types, nodeIDs, distances, migration_matrix, maxConnections)
 
-    write_outputs_to_textfiles(base_demog_dir, base_demog_file, outputdict)
+    # Build mig_matrix required in MigrationFile class
+    mig_matrix = {}
+    for mig_type, outputs in outputdict.items():
+        mig_matrix[mig_type] = {}
+        tmpt_matrix = {}
+        for d1 in range(outputs['Rates'].shape[0]):
+            for d2 in range(outputs['Rates'].shape[1]):
+                if int(outputs['sourceIDs'][d1]) not in tmpt_matrix:
+                    tmpt_matrix[int(outputs['sourceIDs'][d1])] = {
+                        int(outputs['destIDs'][d1, d2]): float(outputs['Rates'][d1, d2])}
+                else:
+                    tmpt_matrix[int(outputs['sourceIDs'][d1])][int(outputs['destIDs'][d1, d2])] = float(
+                        outputs['Rates'][d1, d2])
+        mig_matrix[mig_type] = tmpt_matrix
 
-
-
-
-
-
-
+    for mig_type, output in mig_matrix.items():
+        mf = MigrationFile(dg.idref, output)
+        outputfile_name = os.path.splitext(base_demog_file)[0]
+        outputfile_name = outputfile_name.replace('demographics', '')
+        mf.save_as_txt('{}_{}_migration_new.txt'.format(outputfile_name, mig_type.lower()))
+        mf.generate_file('{}_{}_migration_new.bin'.format(outputfile_name, mig_type.lower()))
