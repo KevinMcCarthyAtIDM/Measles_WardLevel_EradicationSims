@@ -4,11 +4,10 @@ Measles Ward Simulations: Sample demographic
 """
 #
 import json
-import math
 import random
 
 from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from dtk.utils.reports import BaseAgeHistReport
+from dtk.utils.reports.BaseAgeHistReport import BaseAgeHistReport
 from simtools.ModBuilder import ModBuilder, ModFn
 from simtools.SetupParser import SetupParser
 from simtools.ExperimentManager.ExperimentManagerFactory import ExperimentManagerFactory
