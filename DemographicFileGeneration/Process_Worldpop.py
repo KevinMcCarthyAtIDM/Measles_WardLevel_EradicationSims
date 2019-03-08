@@ -7,13 +7,8 @@ a table of populations (and birth rates?), and central lat/longs for each ward.
 
 import numpy as np
 import pandas as pd
-import argparse
-import math
-import os
 from osgeo import gdal, ogr
-import sys
 import time
-sys.path.insert(0, 'D:\\kmccarthy\\GitRepos\\STAMP\\')
 from stamp.GDALTools.GDALTools.RasterUtils import extract_admin_level_data
 from shutil import copyfile
 
@@ -64,11 +59,11 @@ def process_shapefile(shape_filedir, shape_fileprefix, shape_codefilename):
 if __name__ == "__main__":
 
     # Basic parameters.  Should these be inputs?
-    shape_filedir = 'D:\\Shapefiles\\Nigeria\\July_31_Geopode_Shapes\\Boundary_VaccWards_Export\\'
+    shape_filedir = '..\\Data\\Shapefiles\\Nigeria\\July_31_Geopode_Shapes\\Boundary_VaccWards_Export\\'
     shape_fileprefix = 'Boundary_VaccWards_Export'
-    shape_codefilename = 'D:\\Shapefiles\\Nigeria\\July_31_Geopode_Shapes\\Nigeria_Name_Code_Map.csv'
-    pop_raster_filename = 'D:\\WorldPop\\Nigeria\\NGA_ppp_v2c_2015_UNadj.tif'
-    birth_raster_filename = 'D:\\WorldPop\\Nigeria\\NGA_births_pp_v2_2015.tif'
+    shape_codefilename = '..\\Data\\Shapefiles\\Nigeria\\July_31_Geopode_Shapes\\Nigeria_Name_Code_Map.csv'
+    pop_raster_filename = '..\\Data\\WorldPop\\Nigeria\\NGA_ppp_v2c_2015_UNadj.tif'
+    birth_raster_filename = '..\\Data\\WorldPop\\Nigeria\\NGA_births_pp_v2_2015.tif'
     output_filename = '.\population_by_ward.csv'
     recompute = False
 
