@@ -89,7 +89,7 @@ def write_outputs_to_textfiles(base_demog_dir, base_demog_file, outputdict):
 if __name__ == "__main__":
 
     # Basic parameters.  Should these be inputs?
-    base_demog_dir = '..\\DemographicFileGeneration\\'
+    base_demog_dir = '..\\Demographic_File_Generation\\'
     base_demog_file = 'Nigeria_Ward_smaller_minpop5000_demographics.json'
     earth_radius = 6367
     exponents = {'Source': 1, 'Destination': 1, 'Distance': 1}
