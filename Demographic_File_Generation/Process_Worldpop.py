@@ -5,6 +5,7 @@ a table of populations (and birth rates?), and central lat/longs for each ward.
 """
 #
 
+import os
 import numpy as np
 import pandas as pd
 from osgeo import gdal, ogr
