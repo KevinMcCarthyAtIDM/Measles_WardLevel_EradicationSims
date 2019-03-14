@@ -65,7 +65,7 @@ if __name__ == "__main__":
     shape_codefilename = '..\\Data\\Shapefiles\\Nigeria\\July_31_Geopode_Shapes\\Nigeria_Name_Code_Map.csv'
     pop_raster_filename = '..\\Data\\WorldPop\\Nigeria\\NGA_ppp_v2c_2015_UNadj.tif'
     birth_raster_filename = '..\\Data\\WorldPop\\Nigeria\\NGA_births_pp_v2_2015.tif'
-    output_filename = '.\population_by_ward.csv'
+    output_filename = 'population_by_ward.csv'
     recompute = False
 
     if recompute:
