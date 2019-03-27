@@ -14,8 +14,10 @@ import os
 from dtk.tools.demographics.DemographicsFile import DemographicsFile
 from dtk.tools.demographics.Node import Node
 
+
 # Haversine takes long/lat pairs IN RADIANS and computes the haversine distance between them
 from dtk.tools.migration.MigrationFile import MigrationFile
+from dtk.tools.migration.MigrationFile import MigrationTypes
 
 
 def haversine(p1, p2):
@@ -90,7 +92,7 @@ if __name__ == "__main__":
 
     # Basic parameters.  Should these be inputs?
     base_demog_dir = '..\\Demographic_File_Generation\\'
-    base_demog_file = 'Nigeria_Ward_smaller_minpop5000_demographics.json'
+    base_demog_file = 'Nigeria_Ward_smaller_minpop5000_demographics_new.json'
     earth_radius = 6367
     exponents = {'Source': 1, 'Destination': 1, 'Distance': 1}
     maxConnections = {'Local': 8, 'Air': 60, 'Regional': 30, 'Sea': 5}
@@ -132,4 +134,10 @@ if __name__ == "__main__":
         outputfile_name = os.path.splitext(base_demog_file)[0]
         outputfile_name = outputfile_name.replace('demographics', '')
         mf.save_as_txt('{}_{}_migration_new.txt'.format(outputfile_name, mig_type.lower()))
-        mf.generate_file('{}_{}_migration_new.bin'.format(outputfile_name, mig_type.lower()))
+        mig_type = mig_type.lower()
+        if mig_type in ['air', 'local', 'sea', 'regional']:
+            mig_type_key = MigrationTypes[mig_type]
+        else:
+            raise (ValueError("Didn't know what mig_type {0} was".format(mig_type)))
+
+        mf.generate_file('{}_{}_migration_new.bin'.format(outputfile_name, mig_type), mig_type_key)
