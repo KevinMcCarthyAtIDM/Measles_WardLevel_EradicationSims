@@ -3,6 +3,7 @@
 Measles Ward Simulations: Sample demographic
 """
 #
+import os
 import json
 import math
 import random
@@ -26,10 +27,14 @@ cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_smaller_minpop5000_a
 cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_smaller_minpop5000_local_migration.bin')
 cb.experiment_files.add_file(path='InputFiles\\Nigeria_Ward_smaller_minpop5000_local_migration.bin.json')
 cb.experiment_files.add_file(path='InputFiles\\reports.json')
-cb.experiment_files.add_file(path='reporter_plugins\\libReportAgeAtInfectionHistogram_plugin.dll')
+# cb.experiment_files.add_file(path='reporter_plugins\\libReportAgeAtInfectionHistogram_plugin.dll')
 cb.add_reports(BaseAgeHistReport(type='ReportPluginAgeAtInfectionHistogram',
                                  age_bins=[x/12 for x in range(1, 180)],
                                  interval_years=1))
+
+current_dir = os.path.dirname(os.path.realpath(__file__))
+cb.set_dll_root(os.path.join(current_dir, "inputs", "dll"))
+
 
 if __name__ == "__main__":
 
@@ -50,7 +55,7 @@ if __name__ == "__main__":
 
     for ind in [2, 3]: #range(len(UrbanMultiplier)):
         mod_fns = []
-        for n_samples in range(512):
+        for n_samples in range(2):
             names = ['META_Vaccination_Threshold', 'META_Fraction_Meeting', 'META_campaign_coverage', 'Run_Number',
                      'META_Migration', 'Rural_Infectivity_Multiplier', 'Urban_Infectivity_Multiplier',
                      'META_MCV1Days', 'META_MaB_Profile', 'META_Dropout',
