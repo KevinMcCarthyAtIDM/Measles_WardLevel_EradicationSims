@@ -133,11 +133,11 @@ if __name__ == "__main__":
         mf = MigrationFile(dg.idref, output)
         outputfile_name = os.path.splitext(base_demog_file)[0]
         outputfile_name = outputfile_name.replace('demographics', '')
-        mf.save_as_txt('{}_{}_migration_new.txt'.format(outputfile_name, mig_type.lower()))
+        mf.save_as_txt('{}_{}_migration.txt'.format(outputfile_name, mig_type.lower()))
         mig_type = mig_type.lower()
         if mig_type in ['air', 'local', 'sea', 'regional']:
             mig_type_key = MigrationTypes[mig_type]
         else:
             raise (ValueError("Didn't know what mig_type {0} was".format(mig_type)))
 
-        mf.generate_file('{}_{}_migration_new.bin'.format(outputfile_name, mig_type), mig_type_key)
+        mf.generate_file('{}_{}_migration.bin'.format(outputfile_name, mig_type), mig_type_key)

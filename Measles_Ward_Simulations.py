@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     for ind in [2, 3]: #range(len(UrbanMultiplier)):
         mod_fns = []
-        for n_samples in range(2):
+        for n_samples in range(512):
             names = ['META_Vaccination_Threshold', 'META_Fraction_Meeting', 'META_campaign_coverage', 'Run_Number',
                      'META_Migration', 'Rural_Infectivity_Multiplier', 'Urban_Infectivity_Multiplier',
                      'META_MCV1Days', 'META_MaB_Profile', 'META_Dropout',

@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     # Basic parameters.  Should these be inputs?
     base_demog_file = '.\\Nigeria_LGA_demographics.json'
-    out_demog_file = '.\\Nigeria_Ward_smaller_minpop5000_demographics_new.json'
+    out_demog_file = '.\\Nigeria_Ward_smaller_minpop5000_demographics.json'
     node_info_file = '.\\population_by_ward.csv'
 
     node_info = pd.read_csv(node_info_file)
