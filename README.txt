@@ -16,6 +16,7 @@ Look for opportunities where code should be pulled into dtk-tools or something s
 Input file generation
 First step - build demographics and migration files.
 
+
 Demographics file creation:
 In folder "DemographicFileGeneration"
 The first item to run is Process_Worldpop.py.  This function reads a shapefile and worldpop population and birth rasters, aggregates the rasters according to the shapes in the shapefile, and spits out the file "population_by_ward.csv" containing ward names, corresponding populations, latitude, longitude, and areas.  I don't believe that the births actually get used here.

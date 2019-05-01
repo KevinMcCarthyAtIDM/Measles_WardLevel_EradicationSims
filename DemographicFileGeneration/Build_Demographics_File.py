@@ -69,8 +69,8 @@ if __name__ == "__main__":
 
     # Basic parameters.  Should these be inputs?
     base_demog_file = '.\\Nigeria_LGA_demographics.json'
-    out_demog_file = '.\\Nigeria_Ward_smaller_minpop5000_demographics.json'
-    node_info_file = '.\\population_by_ward.csv'
+    out_demog_file = '.\\Nigeria_Ward_smaller_minpop5000_demographics_test.json'
+    node_info_file = '.\\population_by_ward_test.csv'
 
     with open(base_demog_file, 'r') as f:
         base_demog = json.load(f)
