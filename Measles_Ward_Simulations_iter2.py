@@ -4,11 +4,10 @@ Measles Ward Simulations: Sample demographic
 """
 #
 import json
-import math
 import random
 
 from dtk.utils.core.DTKConfigBuilder import DTKConfigBuilder
-from dtk.utils.reports import BaseAgeHistReport
+from dtk.utils.reports.BaseAgeHistReport import BaseAgeHistReport
 from simtools.ModBuilder import ModBuilder, ModFn
 from simtools.SetupParser import SetupParser
 from simtools.ExperimentManager.ExperimentManagerFactory import ExperimentManagerFactory
@@ -33,7 +32,7 @@ cb.add_reports(BaseAgeHistReport(type='ReportPluginAgeAtInfectionHistogram',
 
 if __name__ == "__main__":
 
-    SetupParser.init('HPC')
+    SetupParser.init()
 
     #Scenarios to run - 28:
     with open ('MatlabAnalysis\\outputs.json') as json_data:

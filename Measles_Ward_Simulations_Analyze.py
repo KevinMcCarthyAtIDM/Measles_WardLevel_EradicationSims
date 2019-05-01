@@ -6,17 +6,26 @@ Measles Ward Simulations: Sample demographic
 import json
 import os
 
+from simtools.SetupParser import SetupParser
 from simtools.Analysis.AnalyzeManager import AnalyzeManager
 from simtools.Utilities.Encoding import NumpyEncoder
 
 from PythonAnalysis.Output2MatlabAnalyzer import Output2MatlabAnalyzer
 from simtools.Utilities.COMPSUtilities import get_experiment_by_id
-from COMPS import Client
 from COMPS.Data import QueryCriteria
 
-Client.login('https://comps.idmod.org')
+SetupParser.default_block = "HPC"
+
+
+def load_experiments_from_file():
+    # load file post_channel_config.json
+    ref_exp = json.load(open(os.path.join("Experiments", "experiments.json"), 'rb'))
+    return ref_exp
+
 
 if __name__ == "__main__":
+    SetupParser.init()
+
     exp_list = ["173fa938-40b6-e811-a2c0-c4346bcb7275",
                 "eeacb2da-40b6-e811-a2c0-c4346bcb7275",
                 "26f0d194-41b6-e811-a2c0-c4346bcb7275",
@@ -76,9 +85,12 @@ if __name__ == "__main__":
                 'c47d78b3-b4e2-e811-a2bd-c4346bcb1555', 'c6cbf126-59dd-e811-a2bd-c4346bcb1555',
                 'c9eef583-58dd-e811-a2bd-c4346bcb1555', '50a088ee-57dd-e811-a2bd-c4346bcb1555'
                 ]
+
+    ref_exp = load_experiments_from_file()
     for exp in exp_list:
+
         tmp = get_experiment_by_id(exp, query_criteria=QueryCriteria().select_children(["tags"]))
-        if (os.path.exists(os.path.join('Experiments', exp))) or (any([sim.state.value != 6 for sim in tmp.get_simulations()])):
+        if (exp in ref_exp) or (any([sim.state.value != 6 for sim in tmp.get_simulations()])):
             continue
 
         with open(os.path.join('Experiments', 'experiment_metadata.json'), 'r', encoding='utf8') as jsonfile:
